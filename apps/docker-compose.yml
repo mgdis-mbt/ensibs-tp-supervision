@@ -1,0 +1,81 @@
+services:
+
+  ######################
+  # MONITORING STACK
+  #############
+
+  grafana:
+    image: grafana/grafana-oss:9.3.2
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - grafana-data:/var/lib/grafana
+
+  prometheus:
+    image: prom/prometheus:v2.41.0
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+
+  ######################
+  # Exporters
+  #############
+
+    # cAdvisor - Métriques des conteneurs
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+
+  # Node Exporter - Métriques du système hôte
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+
+  ######################
+  # RHTEST APP
+  #############
+  
+  rhapi:
+    build: ./rhapi
+    container_name: rhapi
+    ports:
+      - 8080:8080
+
+  rhfront:
+    build:
+      context: ./rhfront
+      dockerfile: Dockerfile
+    container_name: rhfront
+    ports:
+      - 8086:80
+
+  noise:
+    build: ./monitoring/noise
+    container_name: noise
+    
+volumes:
+  grafana-data:

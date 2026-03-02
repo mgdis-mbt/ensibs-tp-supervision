@@ -1,0 +1,20 @@
+groups:
+- name: targets
+  rules:
+  - alert: monitor_service_down
+    expr: up == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monitor service non-operational"
+      description: "Service {{ $labels.instance }} is down."
+
+  - alert: rhtest_too_many_requests
+    expr: increase(search_counter[5m]) > 300
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Too many request over the last 5 minutes "
+      description: "{{ humanize $value }} requests on {{ $labels.route }} over the last 5 minutes."
