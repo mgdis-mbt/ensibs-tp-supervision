@@ -18,3 +18,15 @@
 
 Le rapport est attendu au format PDF par mail. Le rapport doit comporter clairement votre nom, prénom et groupe.
 
+---
+
+**Démarrage**
+
+dans le répertoire /apps :
+docker compose up -d
+
+Grafana :
+http://localhost:3000 (admin:admin)
+
+Prometheus :
+http://localhost:9090
